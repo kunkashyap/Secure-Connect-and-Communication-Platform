@@ -3,192 +3,364 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Connect & Communication Platform</title>
+  <title>Secure Connect &bull; Oceanic Communication Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body class="ocean-theme">
+  <!-- Dynamic Ambient Ocean Background -->
+  <div class="ocean-background">
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+    <div class="ocean-caustic-layer"></div>
+  </div>
+
+  <!-- Header Navigation -->
   <header class="header">
     <div class="container header-container">
-      <div class="logo">
-        <span class="shield-icon">🛡️</span>
+      <div class="logo-group">
+        <div class="nautical-badge">
+          <div class="sonar-ring"></div>
+          <span class="logo-icon">🌊</span>
+        </div>
         <div>
-          <h1>Secure Connect</h1>
-          <p class="subtitle">Lab 4: Auth, RBAC, Notes CRUD & Real-Time Socket.IO</p>
+          <div class="brand-title">
+            <span class="brand-name">SECURE CONNECT</span>
+            <span class="brand-sub">OCEANIC VAULT</span>
+          </div>
+          <p class="brand-desc">Lab 4: Manual JWT &bull; RBAC &bull; Isolated Notes &bull; Real-Time Socket.IO</p>
         </div>
       </div>
-      <div id="user-badge" class="user-badge hidden">
-        <span id="badge-name"></span>
-        <span id="badge-role" class="role-pill"></span>
-        <button id="logout-btn" class="btn btn-sm btn-outline">Logout</button>
+
+      <div class="header-right">
+        <!-- Live Connection Status Pill -->
+        <div class="status-pill" id="network-status-pill">
+          <span class="pulse-dot"></span>
+          <span id="network-status-text">Subsea Link Ready</span>
+        </div>
+
+        <!-- User Profile Pill (Visible when logged in) -->
+        <div id="user-badge" class="user-badge hidden">
+          <div class="avatar-circle" id="user-avatar">U</div>
+          <div class="user-details">
+            <span id="badge-name" class="user-name">User</span>
+            <span id="badge-role" class="role-pill">user</span>
+          </div>
+          <button id="logout-btn" class="btn btn-sm btn-glass" title="Sign out of current session">
+            <span>Logout</span>
+            <span class="btn-icon">🚪</span>
+          </button>
+        </div>
       </div>
     </div>
   </header>
 
+  <!-- Main View -->
   <main class="container main-content">
-    <!-- AUTH SECTION -->
-    <section id="auth-section" class="card grid-2">
+    
+    <!-- AUTHENTICATION VIEW -->
+    <section id="auth-section" class="glass-card grid-2 auth-card">
+      <!-- Login Column -->
       <div class="auth-box">
-        <h2>🔐 User Login</h2>
-        <p class="section-desc">Authenticate to obtain JWT Bearer Token</p>
+        <div class="auth-header">
+          <div class="icon-bubble">🔐</div>
+          <div>
+            <h2>Terminal Sign In</h2>
+            <p class="section-desc">Verify cryptographic identity to claim JWT Bearer Token</p>
+          </div>
+        </div>
+
         <form id="login-form">
           <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="login-email" required placeholder="alice@secureconnect.local" value="alice@secureconnect.local">
+            <label for="login-email">Oceanic Identity (Email)</label>
+            <div class="input-wrapper">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="login-email" required placeholder="alice@secureconnect.local" value="alice@secureconnect.local">
+            </div>
           </div>
           <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="login-password" required placeholder="••••••••" value="AlicePassword123!">
+            <label for="login-password">Secret Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="login-password" required placeholder="••••••••" value="AlicePassword123!">
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary">Login</button>
-          <div class="quick-logins">
-            <span>Quick Fill:</span>
-            <button type="button" class="btn-link" onclick="quickFill('alice@secureconnect.local', 'AlicePassword123!')">Alice (User)</button>
-            <button type="button" class="btn-link" onclick="quickFill('bob@secureconnect.local', 'BobPassword123!')">Bob (User)</button>
-            <button type="button" class="btn-link" onclick="quickFill('admin@secureconnect.local', 'AdminPassword123!')">Admin</button>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span>Establish Connection</span>
+            <span class="arrow-icon">→</span>
+          </button>
+
+          <div class="quick-credentials">
+            <span class="quick-title">⚡ Fast Demo Profiles:</span>
+            <div class="quick-chips">
+              <button type="button" class="chip" onclick="quickFill('alice@secureconnect.local', 'AlicePassword123!')">
+                <span class="chip-avatar">A</span> Alice <small>(User)</small>
+              </button>
+              <button type="button" class="chip" onclick="quickFill('bob@secureconnect.local', 'BobPassword123!')">
+                <span class="chip-avatar">B</span> Bob <small>(User)</small>
+              </button>
+              <button type="button" class="chip chip-admin" onclick="quickFill('admin@secureconnect.local', 'AdminPassword123!')">
+                <span class="chip-avatar">👑</span> Admin
+              </button>
+            </div>
           </div>
         </form>
       </div>
 
+      <!-- Registration Column -->
       <div class="auth-box divider-left">
-        <h2>📝 Register New User</h2>
-        <p class="section-desc">Default role: <code>user</code> (Protected from role tampering)</p>
+        <div class="auth-header">
+          <div class="icon-bubble cyan">📝</div>
+          <div>
+            <h2>Register Diver Profile</h2>
+            <p class="section-desc">New credentials with auto-enforced <code>role: 'user'</code></p>
+          </div>
+        </div>
+
         <form id="signup-form">
           <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" id="signup-name" required placeholder="Jane Doe">
+            <label for="signup-name">Full Name</label>
+            <div class="input-wrapper">
+              <span class="input-icon">👤</span>
+              <input type="text" id="signup-name" required placeholder="Captain Nemo">
+            </div>
           </div>
           <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" id="signup-email" required placeholder="jane@example.com">
+            <label for="signup-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">✉️</span>
+              <input type="email" id="signup-email" required placeholder="nemo@nautilus.ocean">
+            </div>
           </div>
           <div class="form-group">
-            <label>Password (min 6 characters)</label>
-            <input type="password" id="signup-password" required minlength="6" placeholder="••••••••">
+            <label for="signup-password">Create Password <small>(minimum 6 characters)</small></label>
+            <div class="input-wrapper">
+              <span class="input-icon">🛡️</span>
+              <input type="password" id="signup-password" required minlength="6" placeholder="••••••••">
+            </div>
           </div>
-          <button type="submit" class="btn btn-success">Sign Up</button>
+
+          <button type="submit" class="btn btn-teal btn-block">
+            <span>Register Secure Account</span>
+            <span class="arrow-icon">+</span>
+          </button>
+          <div class="security-note">
+            <span class="shield-mini">🔒</span>
+            <span>Passwords securely hashed using <code>bcrypt</code> (10 salt rounds). Role tampering blocked.</span>
+          </div>
         </form>
       </div>
     </section>
 
-    <!-- MAIN DASHBOARD -->
+    <!-- AUTHENTICATED DASHBOARD -->
     <div id="dashboard-section" class="hidden">
-      <!-- TABS -->
-      <nav class="nav-tabs">
-        <button class="tab-btn active" data-tab="notes-tab">📒 Personal Notes (CRUD)</button>
-        <button class="tab-btn" data-tab="chat-tab">💬 Real-Time Chat (Socket.IO)</button>
-        <button class="tab-btn" id="admin-tab-btn" data-tab="admin-tab">👑 Admin Panel (RBAC)</button>
+      
+      <!-- SUBSEA NAVIGATION TABS -->
+      <nav class="subsea-tabs">
+        <button class="tab-btn active" data-tab="notes-tab">
+          <span class="tab-icon">📒</span>
+          <span class="tab-text">Personal Notes</span>
+          <span class="tab-badge" id="notes-count-badge">0</span>
+        </button>
+        <button class="tab-btn" data-tab="chat-tab">
+          <span class="tab-icon">💬</span>
+          <span class="tab-text">Real-Time Chat</span>
+          <span class="tab-pulse"></span>
+        </button>
+        <button class="tab-btn admin-only-tab" id="admin-tab-btn" data-tab="admin-tab">
+          <span class="tab-icon">👑</span>
+          <span class="tab-text">Admin Command</span>
+          <span class="role-mini-pill">RBAC</span>
+        </button>
       </nav>
 
-      <!-- NOTES TAB -->
+      <!-- TAB 1: PERSONAL NOTES (CRUD) -->
       <div id="notes-tab" class="tab-pane active">
-        <div class="grid-2">
-          <div class="card">
-            <h3>Create New Note</h3>
-            <p class="section-desc">Personal notes are secured and isolated per user in MongoDB</p>
-            <form id="create-note-form">
+        <div class="grid-2 notes-grid">
+          
+          <!-- Note Creation Pod -->
+          <div class="glass-card pod-card">
+            <div class="card-header">
+              <div class="header-icon">✍️</div>
+              <div>
+                <h3>Deposit Personal Note</h3>
+                <p class="section-desc">Encrypted with query-level owner verification in MongoDB</p>
+              </div>
+            </div>
+
+            <form id="create-note-form" class="mt-4">
               <div class="form-group">
-                <label>Note Title</label>
-                <input type="text" id="note-title" required placeholder="Meeting Minutes...">
+                <label for="note-title">Title / Header</label>
+                <input type="text" id="note-title" required placeholder="e.g. Subsea telemetry parameters..." maxlength="120">
               </div>
               <div class="form-group">
-                <label>Content</label>
-                <textarea id="note-content" required rows="4" placeholder="Secure content..."></textarea>
+                <label for="note-content">Note Content</label>
+                <textarea id="note-content" required rows="5" placeholder="Enter confidential note content..."></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">Save Note</button>
+              <button type="submit" class="btn btn-primary btn-block">
+                <span>Save to Vault</span>
+                <span class="btn-icon">💾</span>
+              </button>
             </form>
           </div>
 
-          <div class="card">
-            <div class="flex-between">
-              <h3>My Notes</h3>
-              <button id="refresh-notes-btn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+          <!-- Notes Vault Display -->
+          <div class="glass-card pod-card">
+            <div class="card-header flex-between">
+              <div class="flex-align">
+                <div class="header-icon cyan">🗄️</div>
+                <div>
+                  <h3>Private Notes Vault</h3>
+                  <p class="section-desc">Isolated to your user ID</p>
+                </div>
+              </div>
+              <button id="refresh-notes-btn" class="btn btn-sm btn-glass" title="Refresh notes list">
+                <span>Sync</span> 🔄
+              </button>
             </div>
-            <div id="notes-list" class="notes-container">
-              <p class="empty-state">Loading notes...</p>
+
+            <div class="filter-bar">
+              <input type="text" id="notes-search" placeholder="🔍 Filter your notes by title or keywords...">
+            </div>
+
+            <div id="notes-list" class="notes-container custom-scroll">
+              <div class="empty-state">
+                <span class="empty-icon">🌊</span>
+                <p>Retrieving your notes from MongoDB...</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- CHAT TAB -->
+      <!-- TAB 2: REAL-TIME CHAT (SOCKET.IO) -->
       <div id="chat-tab" class="tab-pane">
-        <div class="card chat-wrapper">
+        <div class="glass-card chat-wrapper">
+          
+          <!-- Chat Top Navigation -->
           <div class="chat-header flex-between">
-            <div>
-              <h3>Real-Time Room Chat</h3>
-              <p class="section-desc">Secured via Socket.IO JWT Handshake Authentication</p>
+            <div class="chat-title-group">
+              <div class="sonar-indicator"></div>
+              <div>
+                <h3 id="current-room-name">#general &bull; Open Waters</h3>
+                <p class="section-desc">Socket.IO authenticated via Bearer JWT handshake</p>
+              </div>
             </div>
-            <div class="room-selector">
-              <label>Room:</label>
-              <select id="chat-room-select">
-                <option value="general">#general</option>
-                <option value="study-group">#study-group</option>
-                <option value="lab4-dev">#lab4-dev</option>
+
+            <div class="room-selector-group">
+              <span class="selector-label">Frequency:</span>
+              <div class="room-chips">
+                <button type="button" class="room-chip active" data-room="general">#general</button>
+                <button type="button" class="room-chip" data-room="study-group">#study-group</button>
+                <button type="button" class="room-chip" data-room="lab4-dev">#lab4-dev</button>
+              </div>
+              <select id="chat-room-select" class="hidden">
+                <option value="general">general</option>
+                <option value="study-group">study-group</option>
+                <option value="lab4-dev">lab4-dev</option>
               </select>
-              <button id="switch-room-btn" class="btn btn-sm btn-secondary">Join Room</button>
             </div>
           </div>
 
-          <div id="chat-messages" class="chat-messages">
-            <div class="system-message">Select a room and send a message...</div>
+          <!-- Message History Stream -->
+          <div id="chat-messages" class="chat-messages custom-scroll">
+            <div class="system-message">Connecting to subsea frequency stream...</div>
           </div>
 
+          <!-- Message Input Bar -->
           <form id="chat-form" class="chat-input-bar">
-            <input type="text" id="chat-input" placeholder="Type your message..." required autocomplete="off">
-            <button type="submit" class="btn btn-primary">Send</button>
+            <div class="input-with-button">
+              <input type="text" id="chat-input" placeholder="Broadcast encrypted message to this channel..." required autocomplete="off">
+              <button type="submit" class="btn btn-primary btn-send">
+                <span>Send</span>
+                <span class="send-icon">🚀</span>
+              </button>
+            </div>
           </form>
         </div>
       </div>
 
-      <!-- ADMIN TAB -->
+      <!-- TAB 3: ADMIN COMMAND (RBAC) -->
       <div id="admin-tab" class="tab-pane">
-        <div class="card">
-          <h3>👑 Administrative Overview (RBAC Protected)</h3>
-          <p class="section-desc">Accessible strictly to authenticated users with <code>role: 'admin'</code></p>
+        <div class="glass-card pod-card">
+          <div class="card-header flex-between">
+            <div class="flex-align">
+              <div class="header-icon gold">👑</div>
+              <div>
+                <h3>Subsea Command Center (Admin Only)</h3>
+                <p class="section-desc">Guarded strictly by <code>roleMiddleware('admin')</code></p>
+              </div>
+            </div>
+            <span class="security-badge-admin">AUTHORIZATION: LEVEL ADMIN</span>
+          </div>
+
+          <!-- Metrics Pods -->
           <div class="stats-row" id="admin-stats">
-            <div class="stat-card">
-              <h4 id="stat-users">0</h4>
-              <span>Users</span>
+            <div class="metric-pod">
+              <div class="pod-label">Registered Divers</div>
+              <div class="pod-value" id="stat-users">0</div>
+              <div class="pod-sub">Across system</div>
             </div>
-            <div class="stat-card">
-              <h4 id="stat-notes">0</h4>
-              <span>Notes</span>
+            <div class="metric-pod">
+              <div class="pod-label">Secure Notes Stored</div>
+              <div class="pod-value" id="stat-notes">0</div>
+              <div class="pod-sub">Isolated in MongoDB</div>
             </div>
-            <div class="stat-card">
-              <h4 id="stat-messages">0</h4>
-              <span>Messages</span>
+            <div class="metric-pod">
+              <div class="pod-label">Messages Broadcast</div>
+              <div class="pod-value" id="stat-messages">0</div>
+              <div class="pod-sub">Persistent Chat Records</div>
             </div>
           </div>
 
-          <h4 style="margin-top: 1.5rem;">Registered Users</h4>
-          <div class="table-container">
-            <table class="data-table">
+          <!-- Users Registry -->
+          <div class="admin-section-header">
+            <h4>👤 System User Directory</h4>
+            <span class="text-dim">Pass-hashes omitted via Schema toJSON()</span>
+          </div>
+          <div class="table-container custom-scroll">
+            <table class="ocean-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Created</th>
+                  <th>Object ID</th>
+                  <th>Diver Name</th>
+                  <th>Secure Email</th>
+                  <th>Assigned Role</th>
+                  <th>Created Timestamp</th>
                 </tr>
               </thead>
               <tbody id="admin-users-table">
-                <tr><td colspan="5">Loading users...</td></tr>
+                <tr><td colspan="5" class="table-loading">Querying user registry...</td></tr>
               </tbody>
             </table>
           </div>
 
-          <h4 style="margin-top: 1.5rem;">Event-Driven Activity Logs (Node.js EventEmitter)</h4>
-          <div class="log-viewer" id="admin-audit-logs">
-            <p>Loading audit logs...</p>
+          <!-- Event-Driven Telemetry Logs -->
+          <div class="admin-section-header mt-6">
+            <div class="flex-align">
+              <h4>📡 Decoupled Event Telemetry (Node.js EventEmitter)</h4>
+              <span class="telemetry-badge">LIVE STREAM</span>
+            </div>
+            <span class="text-dim">In-process decoupled audit logger</span>
+          </div>
+          <div class="telemetry-viewer custom-scroll" id="admin-audit-logs">
+            <code>Awaiting event dispatches...</code>
           </div>
         </div>
       </div>
+
     </div>
 
-    <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="toast hidden"></div>
+    <!-- FLOATING TOAST -->
+    <div id="toast" class="toast hidden">
+      <span class="toast-icon">✨</span>
+      <span class="toast-text"></span>
+    </div>
   </main>
 
   <script src="app.js"></script>
