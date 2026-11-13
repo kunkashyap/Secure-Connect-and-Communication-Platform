@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Connect & Communication Platform</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container header-container">
+      <div class="logo">
+        <span class="shield-icon">🛡️</span>
+        <div>
+          <h1>Secure Connect</h1>
+          <p class="subtitle">Lab 4: Auth, RBAC, Notes CRUD & Real-Time Socket.IO</p>
+        </div>
+      </div>
+      <div id="user-badge" class="user-badge hidden">
+        <span id="badge-name"></span>
+        <span id="badge-role" class="role-pill"></span>
+        <button id="logout-btn" class="btn btn-sm btn-outline">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <!-- AUTH SECTION -->
+    <section id="auth-section" class="card grid-2">
+      <div class="auth-box">
+        <h2>🔐 User Login</h2>
+        <p class="section-desc">Authenticate to obtain JWT Bearer Token</p>
+        <form id="login-form">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="login-email" required placeholder="alice@secureconnect.local" value="alice@secureconnect.local">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••" value="AlicePassword123!">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <div class="quick-logins">
+            <span>Quick Fill:</span>
+            <button type="button" class="btn-link" onclick="quickFill('alice@secureconnect.local', 'AlicePassword123!')">Alice (User)</button>
+            <button type="button" class="btn-link" onclick="quickFill('bob@secureconnect.local', 'BobPassword123!')">Bob (User)</button>
+            <button type="button" class="btn-link" onclick="quickFill('admin@secureconnect.local', 'AdminPassword123!')">Admin</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="auth-box divider-left">
+        <h2>📝 Register New User</h2>
+        <p class="section-desc">Default role: <code>user</code> (Protected from role tampering)</p>
+        <form id="signup-form">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="signup-name" required placeholder="Jane Doe">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="signup-email" required placeholder="jane@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password (min 6 characters)</label>
+            <input type="password" id="signup-password" required minlength="6" placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-success">Sign Up</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-section" class="hidden">
+      <!-- TABS -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="notes-tab">📒 Personal Notes (CRUD)</button>
+        <button class="tab-btn" data-tab="chat-tab">💬 Real-Time Chat (Socket.IO)</button>
+        <button class="tab-btn" id="admin-tab-btn" data-tab="admin-tab">👑 Admin Panel (RBAC)</button>
+      </nav>
+
+      <!-- NOTES TAB -->
+      <div id="notes-tab" class="tab-pane active">
+        <div class="grid-2">
+          <div class="card">
+            <h3>Create New Note</h3>
+            <p class="section-desc">Personal notes are secured and isolated per user in MongoDB</p>
+            <form id="create-note-form">
+              <div class="form-group">
+                <label>Note Title</label>
+                <input type="text" id="note-title" required placeholder="Meeting Minutes...">
+              </div>
+              <div class="form-group">
+                <label>Content</label>
+                <textarea id="note-content" required rows="4" placeholder="Secure content..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Note</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="flex-between">
+              <h3>My Notes</h3>
+              <button id="refresh-notes-btn" class="btn btn-sm btn-outline">🔄 Refresh</button>
+            </div>
+            <div id="notes-list" class="notes-container">
+              <p class="empty-state">Loading notes...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT TAB -->
+      <div id="chat-tab" class="tab-pane">
+        <div class="card chat-wrapper">
+          <div class="chat-header flex-between">
+            <div>
+              <h3>Real-Time Room Chat</h3>
+              <p class="section-desc">Secured via Socket.IO JWT Handshake Authentication</p>
+            </div>
+            <div class="room-selector">
+              <label>Room:</label>
+              <select id="chat-room-select">
+                <option value="general">#general</option>
+                <option value="study-group">#study-group</option>
+                <option value="lab4-dev">#lab4-dev</option>
+              </select>
+              <button id="switch-room-btn" class="btn btn-sm btn-secondary">Join Room</button>
+            </div>
+          </div>
+
+          <div id="chat-messages" class="chat-messages">
+            <div class="system-message">Select a room and send a message...</div>
+          </div>
+
+          <form id="chat-form" class="chat-input-bar">
+            <input type="text" id="chat-input" placeholder="Type your message..." required autocomplete="off">
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB -->
+      <div id="admin-tab" class="tab-pane">
+        <div class="card">
+          <h3>👑 Administrative Overview (RBAC Protected)</h3>
+          <p class="section-desc">Accessible strictly to authenticated users with <code>role: 'admin'</code></p>
+          <div class="stats-row" id="admin-stats">
+            <div class="stat-card">
+              <h4 id="stat-users">0</h4>
+              <span>Users</span>
+            </div>
+            <div class="stat-card">
+              <h4 id="stat-notes">0</h4>
+              <span>Notes</span>
+            </div>
+            <div class="stat-card">
+              <h4 id="stat-messages">0</h4>
+              <span>Messages</span>
+            </div>
+          </div>
+
+          <h4 style="margin-top: 1.5rem;">Registered Users</h4>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table">
+                <tr><td colspan="5">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 style="margin-top: 1.5rem;">Event-Driven Activity Logs (Node.js EventEmitter)</h4>
+          <div class="log-viewer" id="admin-audit-logs">
+            <p>Loading audit logs...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
